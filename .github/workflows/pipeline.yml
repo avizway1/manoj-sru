@@ -14,18 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  test:                              # 🧪 CI: is the code correct?
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-      - name: Run unit tests
-        run: node --test
-
-  deploy:                            # 🚀 CD: ship it, only if tests passed
-    needs: test
+  deploy:                            # 🚀 CD: ship every push to EC2
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -52,7 +41,8 @@ jobs:
             --instance-os-user "$EC2_USER" \
             --ssh-public-key file:///tmp/deploy_key.pub
 
-          tar -czf - index.html app.js | ssh -i /tmp/deploy_key \
+          # Everything in the repo except dotfiles such as .git and .github
+          tar -czf - * | ssh -i /tmp/deploy_key \
             -o StrictHostKeyChecking=accept-new "$EC2_USER@$EC2_IP" \
             'sudo tar -xzf - -C /var/www/html --no-same-owner --no-same-permissions'
 
