@@ -1,0 +1,62 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write                    # lets the job sign in to AWS without stored keys
+
+concurrency:
+  group: deploy-ec2
+  cancel-in-progress: false
+
+jobs:
+  test:                              # 🧪 CI: is the code correct?
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Run unit tests
+        run: node --test
+
+  deploy:                            # 🚀 CD: ship it, only if tests passed
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Sign in to AWS
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.IAM_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - name: Copy the site to EC2
+        env:
+          EC2_IP: ${{ vars.EC2_IP }}
+          EC2_USER: ${{ vars.EC2_USER_NAME }}
+        run: |
+          instance_id=$(aws ec2 describe-instances \
+            --filters "Name=ip-address,Values=$EC2_IP" \
+            --query 'Reservations[0].Instances[0].InstanceId' --output text)
+
+          # A throwaway key that exists only for this run (valid for 60 seconds)
+          ssh-keygen -t ed25519 -f /tmp/deploy_key -N "" -q
+          aws ec2-instance-connect send-ssh-public-key \
+            --instance-id "$instance_id" \
+            --instance-os-user "$EC2_USER" \
+            --ssh-public-key file:///tmp/deploy_key.pub
+
+          tar -czf - index.html app.js | ssh -i /tmp/deploy_key \
+            -o StrictHostKeyChecking=accept-new "$EC2_USER@$EC2_IP" \
+            'sudo tar -xzf - -C /var/www/html --no-same-owner --no-same-permissions'
+
+      - name: Check the live site
+        env:
+          EC2_IP: ${{ vars.EC2_IP }}
+        run: curl --fail --silent --show-error "http://$EC2_IP/" | grep -q "<title>DevOps Demo</title>"

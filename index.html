@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevOps Demo</title>
+  <style>
+    :root { --bg: #0b0b1e; --text: #f4f4ff; --muted: #a9abd0; --grad: linear-gradient(100deg, #ff9a1f, #ff4fd8 50%, #8b5cff); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; display: grid; place-items: center; padding: 24px 16px;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--text);
+      background: radial-gradient(600px 400px at 20% 10%, #8b5cff55, transparent), radial-gradient(500px 400px at 85% 90%, #ff4fd844, transparent), var(--bg);
+    }
+    main { max-width: 680px; text-align: center; }
+    .tag { display: inline-block; font-size: .8rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #b6ff3b;
+      border: 1px solid #b6ff3b55; background: #b6ff3b14; padding: 6px 12px; border-radius: 999px; }
+    h1 { font-size: clamp(2.2rem, 7vw, 4rem); line-height: 1.05; letter-spacing: -1.5px; margin-top: 18px; }
+    h1 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    #greeting { color: var(--muted); font-size: 1.15rem; margin-top: 16px; line-height: 1.5; }
+    .card { margin-top: 28px; padding: 18px; border-radius: 16px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); font-size: .95rem; color: var(--muted); }
+    .card b { color: var(--text); }
+    .flow { margin-top: 10px; font-family: ui-monospace, monospace; font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="tag">● Live · deployed by GitHub Actions</span>
+    <!-- ✏️ DEMO STEP 1: change this headline, commit, and watch the pipeline -->
+    <h1>Hello from <span>DevOps</span> 🚀</h1>
+    <p id="greeting"></p>
+    <div class="card">
+      Last deployed: <b id="built">—</b>
+      <div class="flow">git push → 🧪 test → 🚀 deploy → you're looking at it</div>
+    </div>
+  </main>
+  <script src="app.js"></script>
+  <script>
+    document.getElementById("greeting").textContent = greet("SR University") || "⚠️ Greeting is broken!";
+    document.getElementById("built").textContent = document.lastModified;
+  </script>
+</body>
+</html>
