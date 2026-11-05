@@ -3,7 +3,7 @@
 function greet(college) {
   const name = String(college || "").trim();
   if (!name) return "";
-  return `Hello ${name}! 👋 This page was deployed by a CI/CD DevOps pipelines by Manoj V`;
+  return `Hello ${name}! 👋 This page was deployed by a CI/CD DevOps pipelines`;
 }
 
 if (typeof module !== "undefined") module.exports = { greet };
